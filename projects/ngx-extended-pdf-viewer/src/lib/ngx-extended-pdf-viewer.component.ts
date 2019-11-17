@@ -34,16 +34,19 @@ import { SidebarviewChange } from './sidebarview-changed';
 import { HandtoolChanged } from './handtool-changed';
 import { PageNumberChange } from './page-number-change';
 import { ServiceWorkerOptions } from './service-worker-options';
+import { PdfBook } from './pdf-book';
 
 @Component({
   selector: 'ngx-extended-pdf-viewer',
   templateUrl: './ngx-extended-pdf-viewer.component.html',
-  styleUrls: ['./viewer-with-images-2.2.css', './ngx-extended-pdf-viewer.component.css'],
+  styleUrls: ['./viewer-with-images-2.2.css', './ngx-extended-pdf-viewer.component.css', './pdf-book.css'],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NgxExtendedPdfViewerComponent implements OnInit, OnChanges, OnDestroy {
   public static ngxExtendedPdfViewerInitialized = false;
+
+  private bookExtension = new PdfBook();
 
   private _src: string | ArrayBuffer;
 
@@ -170,7 +173,7 @@ export class NgxExtendedPdfViewerComponent implements OnInit, OnChanges, OnDestr
 
   /** Allows the user to explicitely enable a list of key bindings. If this property is set, every other key binding is ignored. */
   @Input()
-  public acceptKeys: Array<string>  = [];
+  public acceptKeys: Array<string> = [];
 
   /** Allows the user to put the viewer's svg images into an arbitrary folder */
   @Input()
@@ -477,6 +480,7 @@ export class NgxExtendedPdfViewerComponent implements OnInit, OnChanges, OnDestr
       document.removeEventListener('localized', callback);
       this.initTimeout = setTimeout(() => {
         this.openPDF();
+        this.bookExtension.init();
       }, this.delayFirstView);
     };
 

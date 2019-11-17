@@ -170,6 +170,11 @@ function getViewerConfiguration() {
       scrollVerticalButton: document.getElementById('scrollVertical'),
       scrollHorizontalButton: document.getElementById('scrollHorizontal'),
       scrollWrappedButton: document.getElementById('scrollWrapped'),
+
+      //$FB: add flipbook button
+      bookFlipButton: document.getElementById('bookFlip'),
+      //$FB end
+
       spreadNoneButton: document.getElementById('spreadNone'),
       spreadOddButton: document.getElementById('spreadOdd'),
       spreadEvenButton: document.getElementById('spreadEven'),
@@ -1083,6 +1088,15 @@ let PDFViewerApplication = {
             spreadMode = values.spreadMode | 0;
           }
         }
+
+        //$FB: prevent start in bookflip mode
+        if(scrollMode === _ui_utils.ScrollMode.FLIP) {
+          scrollMode = _ui_utils.ScrollMode.VERTICAL;
+          bookFlip.toStart = true;
+          $('#viewer').css({ opacity: 0 });
+        }
+        //$FB End
+
 
         if (pageMode && sidebarView === _pdf_sidebar.SidebarView.UNKNOWN) {
           sidebarView = apiPageModeToSidebarView(pageMode);
@@ -2563,7 +2577,10 @@ const ScrollMode = {
   UNKNOWN: -1,
   VERTICAL: 0,
   HORIZONTAL: 1,
-  WRAPPED: 2
+  WRAPPED: 2,
+  //$FB: add flipbook scroll mode
+  FLIP: 3
+  //$FB end
 };
 exports.ScrollMode = ScrollMode;
 const SpreadMode = {
@@ -10675,6 +10692,15 @@ class SecondaryToolbar {
         mode: _ui_utils.ScrollMode.WRAPPED
       },
       close: true
+     //$FB: add flipbook button
+      }, {
+        element: options.bookFlipButton,
+        eventName: 'switchscrollmode',
+        eventDetails: {
+          mode: _ui_utils.ScrollMode.FLIP
+        },
+        close: true
+      //$FB end
     }, {
       element: options.spreadNoneButton,
       eventName: 'switchspreadmode',
@@ -10696,7 +10722,7 @@ class SecondaryToolbar {
         mode: _ui_utils.SpreadMode.EVEN
       },
       close: true
-    }, {
+     }, {
       element: options.documentPropertiesButton,
       eventName: 'documentproperties',
       close: true
@@ -11429,7 +11455,9 @@ function getDefaultPreferences() {
       "disablePageLabels": false,
       "enablePrintAutoRotate": false,
       "enableWebGL": false,
-      "eventBusDispatchToDOM": false,
+      //$FB: dispatch to DOM to allow event handling
+      "eventBusDispatchToDOM": true,
+      //$FB end
       "externalLinkTarget": 0,
       "historyUpdateUrl": false,
       "pdfBugEnabled": false,
