@@ -1,4 +1,4 @@
-<mat-card>
+<mat-card style="display:none">
   <mat-card-content>
     <section class="section">
       <button *ngIf="!hidden" mat-raised-button color="primary" class="margin" (click)="hidden = true">Hide the PDF</button>
@@ -104,7 +104,7 @@
     </section>
   </mat-card-content>
 </mat-card>
-<mat-tab-group (selectedTabChange)="activateTab($event.index)">
+<mat-tab-group (selectedTabChange)="activateTab($event.index)" [selectedIndex]="3">
   <mat-tab label="fancy PDF (low print res)">
     <ng-template matTabContent>
       <ngx-extended-pdf-viewer
