@@ -9,8 +9,9 @@
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-brightgreen.svg"></a>
   </p>
+  <p>Installation: `npm install ngx-extended-pdf-viewer`</p>
   <p>
-  CDN: <a href="https://unpkg.com/browse/ngx-extended-pdf-viewer/">unpkg.com</a>
+  CDN: <a href="https://unpkg.com/browse/ngx-extended-pdf-viewer/">unpkg.com</a> 
  </p>
 
 ## Showcase
