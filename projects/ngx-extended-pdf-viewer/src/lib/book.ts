@@ -50,6 +50,7 @@ export class Book {
   private mouseDownHandlerClosure: (this: HTMLElement, ev: MouseEvent) => any = event => this.mouseDownHandler(event);
   private mouseUpHandlerClosure: (this: HTMLElement, ev: MouseEvent) => any = event => this.mouseUpHandler(event);
   private mouseLeaveHandlerClosure: (this: HTMLElement, ev: MouseEvent) => any = event => this.mouseLeaveHandler(event);
+  private pageTurnCallback: (newPage) => void = () => {};
 
   constructor() {}
 
@@ -61,7 +62,8 @@ export class Book {
     this.canvas.removeEventListener('mouseleave', this.mouseLeaveHandlerClosure, false);
   }
 
-  public openBook(width: number, height: number): void {
+  public openBook(width: number, height: number, pageTurnCallback: (newPage) => void): void {
+    this.pageTurnCallback = pageTurnCallback;
     this.BOOK_WIDTH = width - this.CANVAS_PADDING * 2;
     this.BOOK_HEIGHT = height - this.CANVAS_PADDING * 2;
     this.PAGE_WIDTH = width / 2 - 15;
@@ -115,7 +117,6 @@ export class Book {
   }
 
   private mouseDownHandler(event: MouseEvent) {
-    console.log("Mousedown")
     // Make sure the mouse pointer is inside of the book
     this.mouseClickTime = new Date().getTime();
     const initialX = event.clientX - this.book.offsetLeft - this.BOOK_WIDTH / 2;
@@ -176,13 +177,14 @@ export class Book {
       }
 
       flip.dragging = false;
+      this.pageTurnCallback(this.page + 1);
     }
   }
 
   private render(): void {
     const needsRendering = this.flips.some(flip => flip.dragging || Math.abs(flip.progress) < 0.997);
     if (!needsRendering) {
-      this.flips.forEach((flip, index) => (flip.page.style.display = index === this.page ? 'block' : 'none'));
+      this.flips.forEach((flip, index) => (flip.page.style.display = index === this.page ? 'block' : 'block'));
       return;
     }
     let visible = 0;
@@ -216,7 +218,7 @@ export class Book {
           flip.page.style.width = this.PAGE_WIDTH + 'px';
           visible++;
         } else {
-          flip.page.style.display = 'none';
+          //          flip.page.style.display = 'none';
         }
       }
     }
@@ -311,5 +313,12 @@ export class Book {
     this.context.stroke();
 
     this.context.restore();
+  }
+
+  public openPage(pageNumber: number, pageLabel: string): void {
+//    console.log(pageNumber + ' ' + pageLabel);
+// todo: enable jumping to page labels
+// todo: jump to page
+//    this.page = pageNumber - 1;
   }
 }

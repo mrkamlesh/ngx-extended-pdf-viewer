@@ -15,6 +15,7 @@ export class PdfBook {
   public init(): void {
     this.application = (<any>window).PDFViewerApplication;
     this.application.eventBus.on('switchscrollmode', event => this.toggleBookMode(event));
+    this.application.eventBus.on('pagechanging', event => this.openPage(event.pageNumber, event.pageLabel));
   }
 
   private toggleBookMode(event: any): void {
@@ -62,7 +63,13 @@ export class PdfBook {
     this.viewer.scrollPageIntoView = data => this.link(data);
     this.viewer._getVisiblePages = () => this.load();
 
-    this.book.openBook(width, height);
+
+
+    this.book.openBook(width, height, (page) => {this.application.page = page; console.log("Page:" + page); });
+  }
+
+  private openPage(pageNumber: number, pageLabel: string): void {
+    this.book.openPage(pageNumber, pageLabel);
   }
 
   private stopBookMode(): void {
