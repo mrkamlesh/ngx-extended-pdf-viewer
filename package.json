@@ -38,8 +38,13 @@
     "@angular/cli": "^7.2.15",
     "@angular/compiler-cli": "^7.2.15",
     "@angular/language-service": "^7.2.15",
+<<<<<<< HEAD
     "@types/node": "^12.12.14",
     "caniuse-lite": "^1.0.30001012",
+=======
+    "@types/node": "^12.12.11",
+    "caniuse-lite": "^1.0.30001011",
+>>>>>>> #161 page turn effect reacts to the PDF viewer pagination buttons
     "codelyzer": "^5.2.0",
     "cypress": "^3.7.0",
     "macaddress": ">=0.2.9",

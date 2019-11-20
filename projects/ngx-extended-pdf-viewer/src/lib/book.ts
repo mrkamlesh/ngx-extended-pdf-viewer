@@ -9,6 +9,8 @@ interface PageFlipState {
   target: number;
   // True while the page is being dragged
   dragging: boolean;
+  // width of the page
+  pageWidth: number;
 }
 
 export class Book {
@@ -46,23 +48,55 @@ export class Book {
   // List of all the page elements in the DOM
   private pages: HTMLCollection;
 
-  private mouseMoveHandlerClosure: (this: HTMLElement, ev: MouseEvent) => any = event => this.mouseMoveHandler(event);
-  private mouseDownHandlerClosure: (this: HTMLElement, ev: MouseEvent) => any = event => this.mouseDownHandler(event);
-  private mouseUpHandlerClosure: (this: HTMLElement, ev: MouseEvent) => any = event => this.mouseUpHandler(event);
-  private mouseLeaveHandlerClosure: (this: HTMLElement, ev: MouseEvent) => any = event => this.mouseLeaveHandler(event);
+  private mouseMoveHandlerClosure: (
+    this: HTMLElement,
+    ev: MouseEvent
+  ) => any = event => this.mouseMoveHandler(event);
+  private mouseDownHandlerClosure: (
+    this: HTMLElement,
+    ev: MouseEvent
+  ) => any = event => this.mouseDownHandler(event);
+  private mouseUpHandlerClosure: (
+    this: HTMLElement,
+    ev: MouseEvent
+  ) => any = event => this.mouseUpHandler(event);
+  private mouseLeaveHandlerClosure: (
+    this: HTMLElement,
+    ev: MouseEvent
+  ) => any = event => this.mouseLeaveHandler(event);
   private pageTurnCallback: (newPage) => void = () => {};
 
   constructor() {}
 
   public destroy() {
     console.log('TODO: destroy the book');
-    this.canvas.removeEventListener('mousemove', this.mouseMoveHandlerClosure, false);
-    this.canvas.removeEventListener('mousedown', this.mouseDownHandlerClosure, false);
-    this.canvas.removeEventListener('mouseup', this.mouseUpHandlerClosure, false);
-    this.canvas.removeEventListener('mouseleave', this.mouseLeaveHandlerClosure, false);
+    this.canvas.removeEventListener(
+      'mousemove',
+      this.mouseMoveHandlerClosure,
+      false
+    );
+    this.canvas.removeEventListener(
+      'mousedown',
+      this.mouseDownHandlerClosure,
+      false
+    );
+    this.canvas.removeEventListener(
+      'mouseup',
+      this.mouseUpHandlerClosure,
+      false
+    );
+    this.canvas.removeEventListener(
+      'mouseleave',
+      this.mouseLeaveHandlerClosure,
+      false
+    );
   }
 
-  public openBook(width: number, height: number, pageTurnCallback: (newPage) => void): void {
+  public openBook(
+    width: number,
+    height: number,
+    pageTurnCallback: (newPage) => void
+  ): void {
     this.pageTurnCallback = pageTurnCallback;
     this.BOOK_WIDTH = width - this.CANVAS_PADDING * 2;
     this.BOOK_HEIGHT = height - this.CANVAS_PADDING * 2;
@@ -72,7 +106,9 @@ export class Book {
 
     this.book = document.getElementById('viewer') as HTMLElement;
     this.pages = this.book.getElementsByClassName('page');
-    this.canvas = document.getElementsByClassName('pageflip-canvas')[0] as HTMLCanvasElement;
+    this.canvas = document.getElementsByClassName(
+      'pageflip-canvas'
+    )[0] as HTMLCanvasElement;
     this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 
     // Organize the depth of our pages and create the flip definitions
@@ -89,7 +125,8 @@ export class Book {
         // The page DOM element related to this flip
         page: this.pages[i] as HTMLElement,
         // True while the page is being dragged
-        dragging: false
+        dragging: false,
+        pageWidth: this.pages[i].clientWidth
       });
     }
 
@@ -101,10 +138,22 @@ export class Book {
     // Offset the canvas so that it's padding is evenly spread around the book
     // this.canvas.style.top = -this.CANVAS_PADDING + 'px';
     // this.canvas.style.left = -this.CANVAS_PADDING + 'px';
-    this.canvas.addEventListener('mousemove', this.mouseMoveHandlerClosure, false);
-    this.canvas.addEventListener('mousedown', this.mouseDownHandlerClosure, false);
+    this.canvas.addEventListener(
+      'mousemove',
+      this.mouseMoveHandlerClosure,
+      false
+    );
+    this.canvas.addEventListener(
+      'mousedown',
+      this.mouseDownHandlerClosure,
+      false
+    );
     this.canvas.addEventListener('mouseup', this.mouseUpHandlerClosure, false);
-    this.canvas.addEventListener('mouseleave', this.mouseLeaveHandlerClosure, false);
+    this.canvas.addEventListener(
+      'mouseleave',
+      this.mouseLeaveHandlerClosure,
+      false
+    );
 
     // Render the page flip 60 times a second
     setInterval(() => this.render(), 1000 / 60);
@@ -153,7 +202,10 @@ export class Book {
     if (!click) {
       if (this.startedMousemovementOnTheRightHandSide && this.mouse.x >= 0) {
         stayOnPage = true;
-      } else if (!this.startedMousemovementOnTheRightHandSide && this.mouse.x < 0) {
+      } else if (
+        !this.startedMousemovementOnTheRightHandSide &&
+        this.mouse.x < 0
+      ) {
         stayOnPage = true;
       }
     }
@@ -182,9 +234,14 @@ export class Book {
   }
 
   private render(): void {
-    const needsRendering = this.flips.some(flip => flip.dragging || Math.abs(flip.progress) < 0.997);
+    const needsRendering = this.flips.some(
+      flip => flip.dragging || Math.abs(flip.progress) < 0.997
+    );
     if (!needsRendering) {
-      this.flips.forEach((flip, index) => (flip.page.style.display = index === this.page ? 'block' : 'block'));
+      this.flips.forEach(
+        (flip, index) =>
+          (flip.page.style.display = index === this.page ? 'block' : 'block')
+      );
       return;
     }
     let visible = 0;
@@ -198,7 +255,10 @@ export class Book {
         this.flips[i + 1].page.style.display = 'block';
         visible = 2;
         if (flip.dragging) {
-          flip.target = Math.max(Math.min(this.mouse.x / this.PAGE_WIDTH, 1), -1);
+          flip.target = Math.max(
+            Math.min(this.mouse.x / this.PAGE_WIDTH, 1),
+            -1
+          );
         }
 
         // Ease progress towards the target value
@@ -225,7 +285,9 @@ export class Book {
     if (pagesToRedraw.length > 0) {
       // Reset all pixels in the canvas
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      pagesToRedraw.forEach(([page, nextPage]) => this.drawFlip(page, nextPage));
+      pagesToRedraw.forEach(([page, nextPage]) =>
+        this.drawFlip(page, nextPage)
+      );
     }
   }
 
@@ -234,18 +296,23 @@ export class Book {
     const strength = 1 - Math.abs(flip.progress);
 
     // Width of the folded paper
-    const foldWidth = this.PAGE_WIDTH * 0.5 * (1 - flip.progress);
+    const foldWidth = (this.BOOK_WIDTH / 2) * 0.5 * (1 - flip.progress);
+
+    const pageWidth = flip.pageWidth;
 
     // X position of the folded paper
-    const foldX = this.PAGE_WIDTH * flip.progress + foldWidth;
+    const foldX = (this.BOOK_WIDTH / 2) * flip.progress + foldWidth;
 
     // How far the page should outdent vertically due to perspective
     const verticalOutdent = 20 * strength;
 
     // The maximum width of the left and right side shadows
-    const paperShadowWidth = this.PAGE_WIDTH * 0.5 * Math.max(Math.min(1 - flip.progress, 0.5), 0);
-    const rightShadowWidth = this.PAGE_WIDTH * 0.5 * Math.max(Math.min(strength, 0.5), 0);
-    const leftShadowWidth = this.PAGE_WIDTH * 0.5 * Math.max(Math.min(strength, 0.5), 0);
+    const paperShadowWidth =
+      this.PAGE_WIDTH * 0.5 * Math.max(Math.min(1 - flip.progress, 0.5), 0);
+    const rightShadowWidth =
+      this.PAGE_WIDTH * 0.5 * Math.max(Math.min(strength, 0.5), 0);
+    const leftShadowWidth =
+      this.PAGE_WIDTH * 0.5 * Math.max(Math.min(strength, 0.5), 0);
 
     // Change page element width to match the x position of the fold
     flip.page.style.width = Math.max(foldX, 0) + 'px';
@@ -254,18 +321,29 @@ export class Book {
     nextPage.style.clip = `rect(0px ${this.PAGE_WIDTH}px ${this.PAGE_HEIGHT}px ${foldX}px`;
 
     this.context.save();
-    this.context.translate(this.CANVAS_PADDING + this.BOOK_WIDTH / 2, this.PAGE_Y + this.CANVAS_PADDING);
+    this.context.translate(
+      this.CANVAS_PADDING + this.BOOK_WIDTH / 2,
+      this.PAGE_Y + this.CANVAS_PADDING
+    );
 
     // Draw a sharp shadow on the left side of the page
     this.context.strokeStyle = 'rgba(0,0,0,' + 0.05 * strength + ')';
     this.context.lineWidth = 30 * strength;
     this.context.beginPath();
     this.context.moveTo(foldX - foldWidth, -verticalOutdent * 0.5);
-    this.context.lineTo(foldX - foldWidth, this.PAGE_HEIGHT + verticalOutdent * 0.5);
+    this.context.lineTo(
+      foldX - foldWidth,
+      this.PAGE_HEIGHT + verticalOutdent * 0.5
+    );
     this.context.stroke();
 
     // Right side drop shadow
-    const rightShadowGradient = this.context.createLinearGradient(foldX, 0, foldX + rightShadowWidth, 0);
+    const rightShadowGradient = this.context.createLinearGradient(
+      foldX,
+      0,
+      foldX + rightShadowWidth,
+      0
+    );
     rightShadowGradient.addColorStop(0, 'rgba(0,0,0,' + strength * 0.2 + ')');
     rightShadowGradient.addColorStop(0.8, 'rgba(0,0,0,0.0)');
 
@@ -278,7 +356,12 @@ export class Book {
     this.context.fill();
 
     // Left side drop shadow
-    const leftShadowGradient = this.context.createLinearGradient(foldX - foldWidth - leftShadowWidth, 0, foldX - foldWidth, 0);
+    const leftShadowGradient = this.context.createLinearGradient(
+      foldX - foldWidth - leftShadowWidth,
+      0,
+      foldX - foldWidth,
+      0
+    );
     leftShadowGradient.addColorStop(0, 'rgba(0,0,0,0.0)');
     leftShadowGradient.addColorStop(1, 'rgba(0,0,0,' + strength * 0.15 + ')');
 
@@ -291,7 +374,12 @@ export class Book {
     this.context.fill();
 
     // Gradient applied to the folded paper (highlights & shadows)
-    const foldGradient = this.context.createLinearGradient(foldX - paperShadowWidth, 0, foldX, 0);
+    const foldGradient = this.context.createLinearGradient(
+      foldX - paperShadowWidth,
+      0,
+      foldX,
+      0
+    );
     foldGradient.addColorStop(0.35, '#fafafa');
     foldGradient.addColorStop(0.73, '#eeeeee');
     foldGradient.addColorStop(0.9, '#fafafa');
@@ -305,7 +393,12 @@ export class Book {
     this.context.beginPath();
     this.context.moveTo(foldX, 0);
     this.context.lineTo(foldX, this.PAGE_HEIGHT);
-    this.context.quadraticCurveTo(foldX, this.PAGE_HEIGHT + verticalOutdent * 2, foldX - foldWidth, this.PAGE_HEIGHT + verticalOutdent);
+    this.context.quadraticCurveTo(
+      foldX,
+      this.PAGE_HEIGHT + verticalOutdent * 2,
+      foldX - foldWidth,
+      this.PAGE_HEIGHT + verticalOutdent
+    );
     this.context.lineTo(foldX - foldWidth, -verticalOutdent);
     this.context.quadraticCurveTo(foldX, -verticalOutdent * 2, foldX, 0);
 
@@ -316,9 +409,23 @@ export class Book {
   }
 
   public openPage(pageNumber: number, pageLabel: string): void {
-//    console.log(pageNumber + ' ' + pageLabel);
-// todo: enable jumping to page labels
-// todo: jump to page
-//    this.page = pageNumber - 1;
+    const previousPage = this.page;
+    console.log(pageNumber + ' ' + pageLabel);
+    // todo: enable jumping to page labels
+    this.page = pageNumber - 1;
+    for (let i = 0, len = this.pages.length; i < len; i++) {
+      const flip = this.flips[this.page];
+      if (previousPage >= this.page) {
+        if (flip.target === -1) {
+          flip.target = 1;
+          flip.progress = 0;
+        }
+      } else {
+        if (flip.target === 1) {
+          flip.target = -1;
+          flip.progress = 0;
+        }
+      }
+    }
   }
 }

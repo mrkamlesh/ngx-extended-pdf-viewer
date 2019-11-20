@@ -2,8 +2,6 @@ import { Book } from './book';
 export class PdfBook {
   private pages: Array<{ div: HTMLElement; width: number; height: number }> = [];
 
-  private currentPage = 1;
-
   private application: any;
 
   private viewer: any;
@@ -11,11 +9,12 @@ export class PdfBook {
   private book = new Book();
 
   private spread: number; // spread page mode
+  private isActive: boolean;
 
   public init(): void {
     this.application = (<any>window).PDFViewerApplication;
     this.application.eventBus.on('switchscrollmode', event => this.toggleBookMode(event));
-    this.application.eventBus.on('pagechanging', event => this.openPage(event.pageNumber, event.pageLabel));
+    this.application.eventBus.on('pagechanging', event => { if (this.isActive) { this.openPage(event.pageNumber, event.pageLabel); }});
   }
 
   private toggleBookMode(event: any): void {
@@ -28,6 +27,7 @@ export class PdfBook {
   }
 
   private startBookMode(): void {
+    this.isActive = true;
     // determine the dimensions
     const viewerContainerDiv = document.getElementById('viewerContainer') as HTMLElement;
     const width = viewerContainerDiv.clientWidth;
@@ -40,7 +40,6 @@ export class PdfBook {
     const canvas = document.getElementsByClassName('pageflip-canvas')[0] as HTMLElement;
     canvas.classList.remove('invisible');
     this.pages = this.application.pdfViewer._pages;
-    this.currentPage = this.application.page;
     this.application.eventBus._listeners.switchspreadmode = null; // ???
     this.spread = 0;
     this.viewer.spreadMode = 0;
@@ -73,6 +72,7 @@ export class PdfBook {
   }
 
   private stopBookMode(): void {
+    this.isActive = false;
     const viewerDiv = document.getElementById('viewer') as HTMLDivElement;
     (viewerDiv.parentElement as HTMLElement).classList.remove('book');
     viewerDiv.classList.add('pdfViewer');
