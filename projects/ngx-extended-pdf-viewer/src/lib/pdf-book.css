@@ -7,3 +7,26 @@
 		content: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAABJ0AAASdAHeZh94AAAAB3RJTUUH4gkaFRIFt58gZAAAAOxJREFUWMPtVsuOxCAMc0hy6P//bUPrvSyzqKp2oI+pNMInKkFsbEgBBgYehtQfOWeS/AhxSgmqKlaIASAiME2T3E2ec+a6rgAAAwCSSClB5I87IpqtcPcu0WYmpb6dLVwKHRVsLcXLgppkK67XhddZeKfU3WW7u6Nku3G0TowIFjFlvOfWpRFsF9Uizh7Epgg+AeuZ/N8ub4lgWRaqqtT2X9UL3kZAEqoqewT1uG5el0YgIk22ln/H5RH0Wvp9t6DH0l7cEsHhd8GI4OkIXiTzPPO3+8HdbyMkCRGBmcnuo/RsZ2tB3WEHBh7HDzHEfPAE0rkyAAAAAElFTkSuQmCC');
 	}
 }
+
+.book {
+  background: url("book.png");
+/*  background-size: 100% 100%; */
+  background-repeat: no-repeat;
+  position: absolute;
+}
+
+.book #viewer .page {
+	/* background: url("paper.png") no-repeat; */
+	display: block;
+	position: absolute;
+	left: 15px; /* todo this should depend on the zoom factor */
+	top: 10px; /* todo this should depend on the zoom factor */
+  overflow: hidden;
+}
+
+.pageflip-canvas {
+	position: absolute;
+	z-index: 100;
+}
+
+

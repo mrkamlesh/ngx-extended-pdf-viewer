@@ -26,7 +26,7 @@ export class Book {
   private PAGE_Y = (this.BOOK_HEIGHT - this.PAGE_HEIGHT) / 2;
 
   // The canvas size equals to the book dimensions + this padding
-  private CANVAS_PADDING = 60;
+  public CANVAS_PADDING = 60;
 
   private page = 0;
 
@@ -70,22 +70,22 @@ export class Book {
 
   public destroy() {
     console.log('TODO: destroy the book');
-    this.canvas.removeEventListener(
+    (this.book.parentElement as HTMLElement).removeEventListener(
       'mousemove',
       this.mouseMoveHandlerClosure,
       false
     );
-    this.canvas.removeEventListener(
+    (this.book.parentElement as HTMLElement).removeEventListener(
       'mousedown',
       this.mouseDownHandlerClosure,
       false
     );
-    this.canvas.removeEventListener(
+    (this.book.parentElement as HTMLElement).removeEventListener(
       'mouseup',
       this.mouseUpHandlerClosure,
       false
     );
-    this.canvas.removeEventListener(
+    (this.book.parentElement as HTMLElement).removeEventListener(
       'mouseleave',
       this.mouseLeaveHandlerClosure,
       false
@@ -95,7 +95,7 @@ export class Book {
   public openBook(
     width: number,
     height: number,
-    pageTurnCallback: (newPage) => void
+    pageTurnCallback: (newPage: number) => void
   ): void {
     this.pageTurnCallback = pageTurnCallback;
     this.BOOK_WIDTH = width - this.CANVAS_PADDING * 2;
@@ -138,18 +138,18 @@ export class Book {
     // Offset the canvas so that it's padding is evenly spread around the book
     // this.canvas.style.top = -this.CANVAS_PADDING + 'px';
     // this.canvas.style.left = -this.CANVAS_PADDING + 'px';
-    this.canvas.addEventListener(
+    (this.book.parentElement as HTMLElement).addEventListener(
       'mousemove',
       this.mouseMoveHandlerClosure,
       false
     );
-    this.canvas.addEventListener(
+    (this.book.parentElement as HTMLElement).addEventListener(
       'mousedown',
       this.mouseDownHandlerClosure,
       false
     );
-    this.canvas.addEventListener('mouseup', this.mouseUpHandlerClosure, false);
-    this.canvas.addEventListener(
+    (this.book.parentElement as HTMLElement).addEventListener('mouseup', this.mouseUpHandlerClosure, false);
+    (this.book.parentElement as HTMLElement).addEventListener(
       'mouseleave',
       this.mouseLeaveHandlerClosure,
       false
@@ -161,7 +161,7 @@ export class Book {
 
   private mouseMoveHandler(event: MouseEvent): void {
     // Offset mouse position so that the top of the book spine is 0,0
-    this.mouse.x = event.clientX - this.book.offsetLeft - this.BOOK_WIDTH / 2;
+    this.mouse.x = event.clientX - this.book.offsetLeft - this.BOOK_WIDTH / 2 - 22;
     this.mouse.y = event.clientY - this.book.offsetTop;
   }
 
@@ -172,7 +172,7 @@ export class Book {
     this.startedMousemovementOnTheRightHandSide = initialX > 0;
     this.watchingMouseMovements = true;
 
-    if (Math.abs(this.mouse.x) < this.PAGE_WIDTH) {
+    if (Math.abs(this.mouse.x) < (this.BOOK_WIDTH / 2)) {
       if (this.mouse.x < 0 && this.page - 1 >= 0) {
         // We are on the left side, drag the previous page
         this.flips[this.page - 1].dragging = true;
@@ -242,9 +242,11 @@ export class Book {
         (flip, index) =>
           (flip.page.style.display = index === this.page ? 'block' : 'block')
       );
+      this.canvas.style.display = 'none';
       return;
     }
     let visible = 0;
+    let showCanvas = false;
 
     const pagesToRedraw: Array<any> = [];
 
@@ -254,6 +256,7 @@ export class Book {
         flip.page.style.display = 'block';
         this.flips[i + 1].page.style.display = 'block';
         visible = 2;
+        showCanvas = true;
         if (flip.dragging) {
           flip.target = Math.max(
             Math.min(this.mouse.x / this.PAGE_WIDTH, 1),
@@ -282,6 +285,7 @@ export class Book {
         }
       }
     }
+    this.canvas.style.display = 'block';
     if (pagesToRedraw.length > 0) {
       // Reset all pixels in the canvas
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -410,7 +414,6 @@ export class Book {
 
   public openPage(pageNumber: number, pageLabel: string): void {
     const previousPage = this.page;
-    console.log(pageNumber + ' ' + pageLabel);
     // todo: enable jumping to page labels
     this.page = pageNumber - 1;
     for (let i = 0, len = this.pages.length; i < len; i++) {
