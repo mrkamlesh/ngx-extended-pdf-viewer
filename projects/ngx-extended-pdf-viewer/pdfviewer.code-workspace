@@ -4,5 +4,7 @@
 		"path": "/Users/stephan/git/embedded-pdf"
 	}
 ],
-  "settings": {}
+"settings": {
+	"prettier.singleQuote": true
+}
 }

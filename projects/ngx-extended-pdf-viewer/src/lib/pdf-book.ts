@@ -51,7 +51,7 @@ export class PdfBook {
     viewerContainerDiv.classList.add('book');
     const canvas = document.getElementsByClassName(
       'pageflip-canvas'
-    )[0] as HTMLElement;
+    )[0] as HTMLCanvasElement;
     canvas.classList.remove('invisible');
     this.pages = this.application.pdfViewer._pages;
     this.application.eventBus._listeners.switchspreadmode = null; // ???
@@ -63,24 +63,36 @@ export class PdfBook {
     this.viewer.scrollPageIntoView = data => this.link(data);
     this.viewer._getVisiblePages = () => this.load();
 
-    const { width, height } = this.getPageDimensions();
-    const availableWidth =
-      viewerContainerDiv.clientWidth - this.book.CANVAS_PADDING * 2;
-    const availableHeight =
-      viewerContainerDiv.clientHeight - 20;
+    const { width, height, paddingLeft, paddingTop } = this.getPageDimensions();
+    const menu = (viewerContainerDiv.parentElement as HTMLElement).getElementsByClassName('toolbar');
+    const menuHeight = menu[0].clientHeight;
 
+    const availableWidth =
+      (viewerContainerDiv.parentElement as HTMLElement).clientWidth - paddingLeft * 2;
+    const availableHeight =
+      (viewerContainerDiv.parentElement as HTMLElement).clientHeight - menuHeight - paddingTop * 2;
+
+    const distance = 0.1; // distance between left and right page
     const scaleX = availableWidth / width;
     const scaleY = availableHeight / height;
     const scale = Math.min(scaleX, scaleY);
     this.viewer.currentScaleValue =     this.viewer.currentScaleValue * scale;
-    const bx  = (scale * (width * 2) + this.book.CANVAS_PADDING * 2) + 'px';
-    const by = (scale * height + 20) + 'px';
-    viewerContainerDiv.style.backgroundSize = `${bx} ${by}`;
-    viewerContainerDiv.style.width = (scale * (width * 2) + this.book.CANVAS_PADDING * 2) + 'px';
-    viewerContainerDiv.style.height = (scale * height + 30) + 'px';
-    canvas.style.width = bx;
-    canvas.style.height = by;
-    setTimeout(() => this.book.openBook(width, height, page => (this.application.page = page)));
+    const pageWidth = Math.floor(scale * width);
+    const pageHeight = Math.floor(scale * height);
+    const bookWidth  = 2 * (pageWidth * (1 + distance));
+    const bookHeight = availableHeight;
+    const containerWidth = bookWidth - 5; // why -10?
+    const containerHeight = bookHeight + 2 * paddingTop;
+    viewerContainerDiv.style.backgroundSize = `${containerWidth}px ${containerHeight}px`;
+    viewerContainerDiv.style.width = containerWidth + 'px';
+    viewerContainerDiv.style.height = containerHeight + 'px';
+    canvas.width =(bookWidth - 2 * paddingLeft - 10);
+    canvas.height = bookHeight;
+    canvas.style.left = paddingLeft + 'px';
+    canvas.style.top = paddingTop + 'px';
+
+    setTimeout(() => this.book.openBook(bookWidth, bookHeight, pageWidth, pageHeight,
+      paddingLeft, paddingTop, Math.floor(distance * pageWidth / 2), page => (this.application.page = page)));
   }
 
   private openPage(pageNumber: number, pageLabel: string): void {
@@ -126,12 +138,14 @@ export class PdfBook {
     };
   }
 
-  private getPageDimensions(): { width: number; height: number } {
+  private getPageDimensions(): { width: number; height: number, paddingLeft: number; paddingTop: number } {
     // if(!this.active)return null;
     const views = this.application.pdfViewer._pages;
 
     let width = 0;
     let height = 0;
+    let paddingLeft = 15;
+    let paddingTop = 10;
 
     for (const v of views) {
       if (v.viewport.width > width) {
@@ -144,9 +158,13 @@ export class PdfBook {
       } else {
         height = v.viewport.height;
       }
+      console.log("todo: extract padding from CSS");
+      // const w = (this.pages[0] as HTMLElement).clientWidth;
+      // const h = (this.pages[0] as HTMLElement).clientHeight;
+
     }
 
-    return { width, height };
+    return { width, height, paddingLeft, paddingTop };
   }
 
   public link(data: { pageNumber: number }): void {

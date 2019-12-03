@@ -101,6 +101,10 @@
       >[ignoreKeyboard]="true"</mat-checkbox>
 
       <button mat-raised-button color="primary" class="margin" (click)="openDialog()">Modal</button>
+      <mat-checkbox class="margin" [(ngModel)]="showUnverifiedSignatures" matTooltip="force displaying of potentially unverified signatures"
+        >[showUnverifiedSignatures]="true"</mat-checkbox
+      >
+
     </section>
   </mat-card-content>
 </mat-card>
@@ -115,7 +119,8 @@
         [ignoreKeyboard]="ignoreKeyboard"
         [contextMenuAllowed]="contextMenuAllowed"
         [ignoreResponsiveCSS]="true"
-        [src]="'assets/pdfs/fancy.pdf'"
+        [src]="'assets/pdfs/Verpf-Erklarg-Bundesdatenschutz-Sig.pdf'"
+        [showUnverifiedSignatures]="showUnverifiedSignatures"
         (srcChange)="onSourceChange($event)"
         backgroundColor="#ffffff"
         [mobileFriendlyZoom]="mobileFriendlyZoom"

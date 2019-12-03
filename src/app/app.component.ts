@@ -44,6 +44,8 @@ export class AppComponent {
 
   public base64 = pdfBase64; // this.base64ToArrayBuffer(pdfBase64);
 
+  public showUnverifiedSignatures = true;
+
   public get searchtext(): string {
     return this._searchtext;
   }
