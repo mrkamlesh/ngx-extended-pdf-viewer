@@ -15,6 +15,9 @@ export class PdfBook {
   private spread: number; // spread page mode
   private isActive: boolean;
 
+  private originalScrollPageIntoView: any = null;
+  private originalGetVisiblePages: any = null;
+
   public init(): void {
     this.application = (<any>window).PDFViewerApplication;
     this.viewer = this.application.pdfViewer;
@@ -39,6 +42,9 @@ export class PdfBook {
   }
 
   private startBookMode(): void {
+    if (this.isActive) {
+      return;
+    }
     this.isActive = true;
     // determine the dimensions
     const viewerContainerDiv = document.getElementById(
@@ -60,6 +66,8 @@ export class PdfBook {
     this.viewer._spreadMode = -1;
     // this.viewer.currentScaleValue = 'page-fit';
 
+    this.originalGetVisiblePages = this.viewer._getVisiblePages;
+    this.originalScrollPageIntoView = this.viewer.scrollPageIntoView;
     this.viewer.scrollPageIntoView = data => this.link(data);
     this.viewer._getVisiblePages = () => this.load();
 
@@ -86,7 +94,7 @@ export class PdfBook {
     viewerContainerDiv.style.backgroundSize = `${containerWidth}px ${containerHeight}px`;
     viewerContainerDiv.style.width = containerWidth + 'px';
     viewerContainerDiv.style.height = containerHeight + 'px';
-    canvas.width =(bookWidth - 2 * paddingLeft - 10);
+    canvas.width = (bookWidth - 2 * paddingLeft - 10);
     canvas.height = bookHeight;
     canvas.style.left = paddingLeft + 'px';
     canvas.style.top = paddingTop + 'px';
@@ -100,15 +108,34 @@ export class PdfBook {
   }
 
   private stopBookMode(): void {
-    this.isActive = false;
-    const viewerDiv = document.getElementById('viewer') as HTMLDivElement;
-    (viewerDiv.parentElement as HTMLElement).classList.remove('book');
-    viewerDiv.classList.add('pdfViewer');
-    (document.getElementsByClassName(
-      'pageflip-canvas'
-    )[0] as HTMLElement).classList.add('invisible');
-    this.book.destroy();
-  }
+    if (this.isActive) {
+      this.isActive = false;
+
+      this.viewer._getVisiblePages = this.originalGetVisiblePages;
+      this.viewer.scrollPageIntoView = this.originalScrollPageIntoView;
+
+      const viewerDiv = document.getElementById('viewer') as HTMLDivElement;
+      (viewerDiv.parentElement as HTMLElement).classList.remove('book');
+      viewerDiv.classList.add('pdfViewer');
+      (document.getElementsByClassName(
+        'pageflip-canvas'
+      )[0] as HTMLElement).classList.add('invisible');
+      const viewerContainer = viewerDiv.parentElement as HTMLDivElement;
+      viewerContainer.style.background = '';
+      viewerContainer.style.width = '';
+      viewerContainer.style.height = '';
+      if (this.pages) {
+        this.pages.forEach(p => {
+          p.div.style.left = '';
+          p.div.style.zIndex = '';
+          p.div.style.width = '';
+        });
+      }
+      this.viewer.currentScaleValue = 'auto';
+
+      this.book.destroy();
+    }
+    }
 
   private load(): { first: any; last: any; views: Array<any> } {
     // if(!this.active)return null;

@@ -51,19 +51,19 @@ export class Book {
   private mouseMoveHandlerClosure: (
     this: HTMLElement,
     ev: MouseEvent
-  ) => any = event => this.mouseMoveHandler(event);
+  ) => any = event => this.mouseMoveHandler(event)
   private mouseDownHandlerClosure: (
     this: HTMLElement,
     ev: MouseEvent
-  ) => any = event => this.mouseDownHandler(event);
+  ) => any = event => this.mouseDownHandler(event)
   private mouseUpHandlerClosure: (
     this: HTMLElement,
     ev: MouseEvent
-  ) => any = event => this.mouseUpHandler(event);
+  ) => any = event => this.mouseUpHandler(event)
   private mouseLeaveHandlerClosure: (
     this: HTMLElement,
     ev: MouseEvent
-  ) => any = event => this.mouseLeaveHandler(event);
+  ) => any = event => this.mouseLeaveHandler(event)
   private pageTurnCallback: (newPage) => void = () => { };
 
   constructor() { }
@@ -104,7 +104,6 @@ export class Book {
     distanceBetweenPages: number,
     pageTurnCallback: (newPage: number) => void
   ): void {
-    console.log(distanceBetweenPages);
     this.pageTurnCallback = pageTurnCallback;
     this.BOOK_WIDTH = availableBookWidth;
     // this.BOOK_HEIGHT = availableBookHeight;
@@ -349,7 +348,6 @@ export class Book {
     );
 
     // Draw a sharp shadow on the left side of the page
-    /*
     this.context.strokeStyle = 'rgba(0,0,0,' + 0.05 * strength + ')';
     this.context.lineWidth = 30 * strength;
     this.context.beginPath();
@@ -427,7 +425,7 @@ export class Book {
 
     this.context.fill();
     this.context.stroke();
-    */
+
 
     this.context.strokeStyle = 'rgb(255,0,0)';
     this.context.lineWidth = 2;
@@ -466,17 +464,36 @@ export class Book {
     // todo: enable jumping to page labels
     this.page = pageNumber - 1;
     for (let i = 0, len = this.pages.length; i < len; i++) {
-      const flip = this.flips[this.page];
-      if (previousPage >= this.page) {
-        if (flip.target === -1) {
-          flip.target = 1;
-          flip.progress = 0;
-        }
+      const flip = this.flips[i];
+
+      if (i / 2 < this.page / 2) {
+        flip.target = -1;
+        flip.progress = -1;
+        flip.page.style.width = 0 + 'px';
+        flip.lastProgress = -1;
+        flip.dragging = false;
+        console.log(i + " " + 0);
+      } else if (i / 2 > this.page / 2) {
+        flip.target = 1;
+        flip.progress = 1;
+        flip.page.style.width = flip.pageWidth + 'px';
+        flip.lastProgress = -1;
+        flip.dragging = false;
+        console.log(i + " " + flip.pageWidth);
       } else {
-        if (flip.target === 1) {
-          flip.target = -1;
-          flip.progress = 0;
-        }
+        if (previousPage >= this.page) {
+          if (flip.target === -1) {
+            flip.target = 1;
+            flip.progress = 0;
+          }
+        } else {
+          if (flip.target === 1) {
+            flip.target = -1;
+            flip.progress = 0;
+          }
+      }
+
+
       }
     }
   }
