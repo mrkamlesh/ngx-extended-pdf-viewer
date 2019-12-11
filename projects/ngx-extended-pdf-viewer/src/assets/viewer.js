@@ -9778,6 +9778,7 @@ class PDFPageView {
     this.loadingIconDiv = document.createElement('div');
     this.loadingIconDiv.className = 'loadingIcon';
     div.appendChild(this.loadingIconDiv);
+    this.loadingIconDiv.innerHTML="Page " + this.id; // DEBUGGING CODE
   }
 
   update(scale, rotation) {

@@ -18,6 +18,8 @@ export class PdfBook {
   private originalScrollPageIntoView: any = null;
   private originalGetVisiblePages: any = null;
 
+  private pageRequests: Array<Promise<void> | boolean> = [];
+
   public init(): void {
     this.application = (<any>window).PDFViewerApplication;
     this.viewer = this.application.pdfViewer;
@@ -99,11 +101,23 @@ export class PdfBook {
     canvas.style.left = paddingLeft + 'px';
     canvas.style.top = paddingTop + 'px';
 
+    const currentPage = this.application.page as number;
+    const currentPageLabel = undefined;
+
     setTimeout(() => this.book.openBook(bookWidth, bookHeight, pageWidth, pageHeight,
-      paddingLeft, paddingTop, Math.floor(distance * pageWidth / 2), page => (this.application.page = page)));
+      paddingLeft, paddingTop, Math.floor(distance * pageWidth / 2),
+      currentPage, currentPageLabel, page => {
+        this.application.page = page;
+        const pageNumber = page + 1;
+        this.ensurePdfPageLoaded(pageNumber - pageNumber % 2);
+        this.ensurePdfPageLoaded(1 + (pageNumber - pageNumber % 2));
+      }));
   }
 
   private openPage(pageNumber: number, pageLabel: string): void {
+    this.ensurePdfPageLoaded(pageNumber - pageNumber % 2);
+    this.ensurePdfPageLoaded(1 + (pageNumber - pageNumber % 2));
+
     this.book.openPage(pageNumber, pageLabel);
   }
 
@@ -197,5 +211,48 @@ export class PdfBook {
   public link(data: { pageNumber: number }): void {
     // if(!this.active)return;
     this.application.page = data.pageNumber;
+    this.originalScrollPageIntoView(data);
+
+    this.ensurePdfPageLoaded(data.pageNumber - data.pageNumber % 2);
+    this.ensurePdfPageLoaded(1 + (data.pageNumber - data.pageNumber % 2));
   }
+
+  private ensurePdfPageLoaded(page: number) {
+    console.log("page = " + page);
+    if (page < 0) {
+      return;
+    }
+    const pageNumber = (this.pages[page] as any).id;
+    if (this.pageRequests[pageNumber]) {
+      return;
+    }
+
+    console.log("Fetching page " + pageNumber);
+    const promise = this.application.pdfDocument.getPage(page).then(pageInfo => {
+      // thumbView.setPdfPage(pdfPage); TODO ???
+      this.pageRequests[pageNumber] = true;
+      console.log("fetched page " + JSON.stringify(pageInfo.pageNumber));
+      const pageDiv = (this.pages[this.application.page] as any).div as HTMLDivElement;
+      const loaded = pageDiv.getAttribute('data-loaded');
+      console.log(loaded);
+      const li = pageDiv.getElementsByClassName('loadingIcon');
+      if (li && li.length>0) {
+        li[0].innerHTML = "Fetched as  page " + pageInfo.pageNumber;
+      }
+      if (!loaded) {
+       (this.pages[this.application.page] as any).draw();
+       if (li && li.length>0) {
+        li[0].innerHTML = "Drawn as  page " + pageInfo.pageNumber;
+      }
+      this.application.pdfViewer.forceRendering();
+      }
+      return;
+    }).catch(reason => {
+      console.error('Unable to get page', reason);
+      this.pageRequests[pageNumber] = false;
+    });
+    this.pageRequests[pageNumber] = promise;
+    return promise;
+  }
+
 }

@@ -29,6 +29,7 @@ export class Book {
   public PADDING_TOP = 10;
 
   private page = 0;
+  private pageLabel: string | undefined = undefined;
 
   private mouseClickTime = 0;
 
@@ -102,6 +103,8 @@ export class Book {
     paddingLeft: number,
     paddingTop: number,
     distanceBetweenPages: number,
+    page: number,
+    pageLabel,
     pageTurnCallback: (newPage: number) => void
   ): void {
     this.pageTurnCallback = pageTurnCallback;
@@ -112,7 +115,8 @@ export class Book {
     this.DISTANCE_BETWEEN_PAGES = distanceBetweenPages;
     this.PADDING_LEFT = paddingLeft;
     this.PADDING_TOP = paddingTop;
-
+    this.page = page;
+    this.pageLabel = pageLabel;
     this.book = document.getElementById('viewer') as HTMLElement;
     this.pages = this.book.getElementsByClassName('page');
     this.canvas = document.getElementsByClassName(
@@ -168,6 +172,8 @@ export class Book {
 
     // Render the page flip 60 times a second
     setInterval(() => this.render(), 1000 / 60);
+    this.openPage(this.page, this.pageLabel);
+
   }
 
   private mouseMoveHandler(event: MouseEvent): void {
@@ -459,9 +465,10 @@ export class Book {
     this.context.restore();
   }
 
-  public openPage(pageNumber: number, pageLabel: string): void {
+  public openPage(pageNumber: number, pageLabel: string | undefined): void {
     const previousPage = this.page;
     // todo: enable jumping to page labels
+    // PDFViewerApplication.pdfViewer._pageLabels
     this.page = pageNumber - 1;
     for (let i = 0, len = this.pages.length; i < len; i++) {
       const flip = this.flips[i];
@@ -472,14 +479,14 @@ export class Book {
         flip.page.style.width = 0 + 'px';
         flip.lastProgress = -1;
         flip.dragging = false;
-        console.log(i + " " + 0);
+        // console.log(i + ' ' + 0);
       } else if (i / 2 > this.page / 2) {
         flip.target = 1;
         flip.progress = 1;
         flip.page.style.width = flip.pageWidth + 'px';
         flip.lastProgress = -1;
         flip.dragging = false;
-        console.log(i + " " + flip.pageWidth);
+        // console.log(i + ' ' + flip.pageWidth);
       } else {
         if (previousPage >= this.page) {
           if (flip.target === -1) {

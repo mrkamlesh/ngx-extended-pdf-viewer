@@ -20,8 +20,8 @@ export class AppComponent {
   public visible = { 3: true };
   public mobileFriendlyZoomPercent = false;
   public currentZoomFactor: number;
-  public showSidebarButton = false;
-  public sidebarVisible = undefined;
+  public showSidebarButton = true;
+  public sidebarVisible = true;
 
   public height: string | undefined = '80vh';
   public filenameForDownload: string | undefined = undefined;
