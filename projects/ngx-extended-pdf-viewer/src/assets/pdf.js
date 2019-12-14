@@ -11670,7 +11670,7 @@ class WorkerTransport {
 
   getPage(pageNumber) {
     if (!Number.isInteger(pageNumber) || pageNumber <= 0 || pageNumber > this._numPages) {
-      return Promise.reject(new Error('Invalid page request'));
+      return Promise.reject(new Error('Invalid page request: ' + pageNumber + ' should be between 1 and ' + this._numPages));
     }
 
     const pageIndex = pageNumber - 1;

@@ -74,29 +74,34 @@ export class PdfBook {
     this.viewer._getVisiblePages = () => this.load();
 
     const { width, height, paddingLeft, paddingTop } = this.getPageDimensions();
-    const menu = (viewerContainerDiv.parentElement as HTMLElement).getElementsByClassName('toolbar');
+    const menu = (viewerContainerDiv.parentElement as HTMLElement).getElementsByClassName(
+      'toolbar'
+    );
     const menuHeight = menu[0].clientHeight;
 
     const availableWidth =
-      (viewerContainerDiv.parentElement as HTMLElement).clientWidth - paddingLeft * 2;
+      (viewerContainerDiv.parentElement as HTMLElement).clientWidth -
+      paddingLeft * 2;
     const availableHeight =
-      (viewerContainerDiv.parentElement as HTMLElement).clientHeight - menuHeight - paddingTop * 2;
+      (viewerContainerDiv.parentElement as HTMLElement).clientHeight -
+      menuHeight -
+      paddingTop * 2;
 
     const distance = 0.1; // distance between left and right page
     const scaleX = availableWidth / width;
     const scaleY = availableHeight / height;
     const scale = Math.min(scaleX, scaleY);
-    this.viewer.currentScaleValue =     this.viewer.currentScaleValue * scale;
+    this.viewer.currentScaleValue = this.viewer.currentScaleValue * scale;
     const pageWidth = Math.floor(scale * width);
     const pageHeight = Math.floor(scale * height);
-    const bookWidth  = 2 * (pageWidth * (1 + distance));
+    const bookWidth = 2 * (pageWidth * (1 + distance));
     const bookHeight = availableHeight;
     const containerWidth = bookWidth - 5; // why -10?
     const containerHeight = bookHeight + 2 * paddingTop;
     viewerContainerDiv.style.backgroundSize = `${containerWidth}px ${containerHeight}px`;
     viewerContainerDiv.style.width = containerWidth + 'px';
     viewerContainerDiv.style.height = containerHeight + 'px';
-    canvas.width = (bookWidth - 2 * paddingLeft - 10);
+    canvas.width = bookWidth - 2 * paddingLeft - 10;
     canvas.height = bookHeight;
     canvas.style.left = paddingLeft + 'px';
     canvas.style.top = paddingTop + 'px';
@@ -104,19 +109,30 @@ export class PdfBook {
     const currentPage = this.application.page as number;
     const currentPageLabel = undefined;
 
-    setTimeout(() => this.book.openBook(bookWidth, bookHeight, pageWidth, pageHeight,
-      paddingLeft, paddingTop, Math.floor(distance * pageWidth / 2),
-      currentPage, currentPageLabel, page => {
-        this.application.page = page;
-        const pageNumber = page + 1;
-        this.ensurePdfPageLoaded(pageNumber - pageNumber % 2);
-        this.ensurePdfPageLoaded(1 + (pageNumber - pageNumber % 2));
-      }));
+    setTimeout(() =>
+      this.book.openBook(
+        bookWidth,
+        bookHeight,
+        pageWidth,
+        pageHeight,
+        paddingLeft,
+        paddingTop,
+        Math.floor((distance * pageWidth) / 2),
+        currentPage,
+        currentPageLabel,
+        page => {
+          this.application.page = page;
+          const pageNumber = page + 1;
+          this.ensurePdfPageLoaded(pageNumber - (pageNumber % 2));
+          this.ensurePdfPageLoaded(1 + (pageNumber - (pageNumber % 2)));
+        }
+      )
+    );
   }
 
   private openPage(pageNumber: number, pageLabel: string): void {
-    this.ensurePdfPageLoaded(pageNumber - pageNumber % 2);
-    this.ensurePdfPageLoaded(1 + (pageNumber - pageNumber % 2));
+    this.ensurePdfPageLoaded(pageNumber - (pageNumber % 2));
+    this.ensurePdfPageLoaded(1 + (pageNumber - (pageNumber % 2)));
 
     this.book.openPage(pageNumber, pageLabel);
   }
@@ -149,7 +165,7 @@ export class PdfBook {
 
       this.book.destroy();
     }
-    }
+  }
 
   private load(): { first: any; last: any; views: Array<any> } {
     // if(!this.active)return null;
@@ -179,7 +195,12 @@ export class PdfBook {
     };
   }
 
-  private getPageDimensions(): { width: number; height: number, paddingLeft: number; paddingTop: number } {
+  private getPageDimensions(): {
+    width: number;
+    height: number;
+    paddingLeft: number;
+    paddingTop: number;
+  } {
     // if(!this.active)return null;
     const views = this.application.pdfViewer._pages;
 
@@ -199,10 +220,9 @@ export class PdfBook {
       } else {
         height = v.viewport.height;
       }
-      console.log("todo: extract padding from CSS");
+      console.log('todo: extract padding from CSS');
       // const w = (this.pages[0] as HTMLElement).clientWidth;
       // const h = (this.pages[0] as HTMLElement).clientHeight;
-
     }
 
     return { width, height, paddingLeft, paddingTop };
@@ -213,12 +233,11 @@ export class PdfBook {
     this.application.page = data.pageNumber;
     this.originalScrollPageIntoView(data);
 
-    this.ensurePdfPageLoaded(data.pageNumber - data.pageNumber % 2);
-    this.ensurePdfPageLoaded(1 + (data.pageNumber - data.pageNumber % 2));
+    this.ensurePdfPageLoaded(data.pageNumber - (data.pageNumber % 2));
+    this.ensurePdfPageLoaded(1 + (data.pageNumber - (data.pageNumber % 2)));
   }
 
   private ensurePdfPageLoaded(page: number) {
-    console.log("page = " + page);
     if (page < 0) {
       return;
     }
@@ -227,32 +246,35 @@ export class PdfBook {
       return;
     }
 
-    console.log("Fetching page " + pageNumber);
-    const promise = this.application.pdfDocument.getPage(page).then(pageInfo => {
-      // thumbView.setPdfPage(pdfPage); TODO ???
-      this.pageRequests[pageNumber] = true;
-      console.log("fetched page " + JSON.stringify(pageInfo.pageNumber));
-      const pageDiv = (this.pages[this.application.page] as any).div as HTMLDivElement;
-      const loaded = pageDiv.getAttribute('data-loaded');
-      console.log(loaded);
-      const li = pageDiv.getElementsByClassName('loadingIcon');
-      if (li && li.length>0) {
-        li[0].innerHTML = "Fetched as  page " + pageInfo.pageNumber;
-      }
-      if (!loaded) {
-       (this.pages[this.application.page] as any).draw();
-       if (li && li.length>0) {
-        li[0].innerHTML = "Drawn as  page " + pageInfo.pageNumber;
-      }
-      this.application.pdfViewer.forceRendering();
-      }
-      return;
-    }).catch(reason => {
-      console.error('Unable to get page', reason);
-      this.pageRequests[pageNumber] = false;
-    });
+    console.log('Fetching page index: ' + page + ' page number:' + pageNumber);
+    const promise = this.application.pdfDocument
+      .getPage(pageNumber)
+      .then(pageInfo => {
+        // thumbView.setPdfPage(pdfPage); TODO ???
+        this.pageRequests[pageNumber] = true;
+        console.log('fetched page ' + JSON.stringify(pageInfo.pageNumber));
+        const pageDiv = (this.pages[this.application.page] as any)
+          .div as HTMLDivElement;
+        const loaded = pageDiv.getAttribute('data-loaded');
+        console.log(loaded);
+        const li = pageDiv.getElementsByClassName('loadingIcon');
+        if (li && li.length > 0) {
+          li[0].innerHTML = 'Fetched as  page ' + pageInfo.pageNumber;
+        }
+        if (!loaded) {
+          (this.pages[this.application.page] as any).draw();
+          if (li && li.length > 0) {
+            li[0].innerHTML = 'Drawn as  page ' + pageInfo.pageNumber;
+          }
+          this.application.pdfViewer.forceRendering();
+        }
+        return;
+      })
+      .catch(reason => {
+        console.error('Unable to get page', reason);
+        this.pageRequests[pageNumber] = false;
+      });
     this.pageRequests[pageNumber] = promise;
     return promise;
   }
-
 }
